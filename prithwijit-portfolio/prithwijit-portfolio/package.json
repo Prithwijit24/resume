@@ -1,0 +1,18 @@
+{
+  "name": "prithwijit-portfolio",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Prithwijit Ghosh — 3D portfolio. A cinematic world of floating islands you scroll through.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.2"
+  }
+}
