@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { makePathLane } from '../Path.js';
 
 // ════════════════════════════════════════════════════════════════════
 // Biome 2 — Bioluminescent Forest.
@@ -14,6 +15,11 @@ export function buildForest(scene, biome) {
   const floor = makeMossyFloor(span);
   floor.position.set(0, -7, cz);
   group.add(floor);
+
+  // ── Path lane (mossy stone road) ─────────────────────────────────
+  const lane = makePathLane(span * 2 + 8, '#1a3024', '#7effa6');
+  lane.position.set(0, -7, cz);
+  group.add(lane);
 
   // ── Trees lining the path ────────────────────────────────────────
   const trees = [];

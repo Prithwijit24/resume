@@ -1,9 +1,10 @@
 import * as THREE from 'three';
+import { makePathLane } from '../Path.js';
 
 // ════════════════════════════════════════════════════════════════════
 // Biome 0 — Sky Islands at dawn.
-// Floating low-poly islands with trees, glowing crystals, a rolling
-// cloud sea below, drifting petals and circling birds.
+// A glowing stone sky-bridge runs through the air between floating
+// islands. Cloud sea rolls below, petals drift, birds circle above.
 // ════════════════════════════════════════════════════════════════════
 export function buildSkyIslands(scene, biome) {
   const group = new THREE.Group();
@@ -11,15 +12,19 @@ export function buildSkyIslands(scene, biome) {
   const cz = biome.centerZ;
   const span = biome.length;
 
-  // ── Islands ──────────────────────────────────────────────────────
-  // Positioned so the camera path (x in [-4.6, 4.6], z from 10 → -50) flies
-  // BETWEEN them rather than into them, with mixed heights for parallax.
+  // ── Glowing sky bridge (the runway) ──────────────────────────────
+  const lane = makePathLane(span * 2 + 12, '#c89860', '#ffd9a0');
+  lane.position.set(0, -7, cz);
+  group.add(lane);
+
+  // ── Floating islands flanking the bridge ────────────────────────
+  // All islands are off the path (|x| > 8) and at varied elevations.
   const specs = [
-    { pos: [-12, -2,   cz + 22], r: 5.5, color: '#d9b386', grass: '#9bd55c', trees: 4, hue: 0.95 },
-    { pos: [ 13,  4,   cz +  8], r: 3.5, color: '#e6c094', grass: '#a5dc6a', trees: 3, hue: 0.15 },
-    { pos: [-16,  9,   cz - 10], r: 4.5, color: '#cfa67a', grass: '#94cc52', trees: 4, hue: 0.55 },
-    { pos: [ 11, 11,   cz - 24], r: 3.8, color: '#dcb085', grass: '#a8d860', trees: 3, hue: 0.85 },
-    { pos: [ -7, 13,   cz - 32], r: 3.0, color: '#d4a878', grass: '#9dd35a', trees: 2, hue: 0.05 },
+    { pos: [-15, -4,  cz + 22], r: 5.5, color: '#d9b386', grass: '#9bd55c', trees: 4, hue: 0.95 },
+    { pos: [ 15,  3,  cz +  6], r: 3.8, color: '#e6c094', grass: '#a5dc6a', trees: 3, hue: 0.15 },
+    { pos: [-18, 10,  cz - 12], r: 4.5, color: '#cfa67a', grass: '#94cc52', trees: 4, hue: 0.55 },
+    { pos: [ 14, 12,  cz - 24], r: 3.8, color: '#dcb085', grass: '#a8d860', trees: 3, hue: 0.85 },
+    { pos: [-10, 15,  cz - 34], r: 3.0, color: '#d4a878', grass: '#9dd35a', trees: 2, hue: 0.05 },
   ];
   const islands = specs.map(s => {
     const isl = makeIsland(s);

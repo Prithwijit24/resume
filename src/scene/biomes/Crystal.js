@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { makePathLane } from '../Path.js';
 
 // ════════════════════════════════════════════════════════════════════
 // Biome 3 — Crystal Canyon.
@@ -14,6 +15,11 @@ export function buildCrystal(scene, biome) {
   const floor = makeSandFloor(span);
   floor.position.set(0, -7, cz);
   group.add(floor);
+
+  // ── Path lane (warm sandstone road) ──────────────────────────────
+  const lane = makePathLane(span * 2 + 8, '#7a3858', '#ffb84c');
+  lane.position.set(0, -7, cz);
+  group.add(lane);
 
   // ── Tall crystal spires ───────────────────────────────────────────
   const spires = [];
@@ -38,9 +44,10 @@ export function buildCrystal(scene, biome) {
     spires.push(sp);
   }
 
-  // ── Smaller crystal clusters near floor ──────────────────────────
-  for (let i = 0; i < 24; i++) {
-    const x = (Math.random() - 0.5) * 36;
+  // ── Smaller crystal clusters near floor (off the path) ──────────
+  for (let i = 0; i < 28; i++) {
+    const side = i % 2 === 0 ? 1 : -1;
+    const x = side * (4.5 + Math.random() * 14);
     const z = cz - span + Math.random() * (span * 2);
     const c = palette[Math.floor(Math.random() * palette.length)];
     const small = makeSpire(0.5 + Math.random() * 0.6, 1.4 + Math.random() * 1.8, c);
@@ -60,8 +67,10 @@ export function buildCrystal(scene, biome) {
         roughness: 0.2, metalness: 0.4, flatShading: true,
       }),
     );
-    const x = (Math.random() - 0.5) * 22;
-    const y = 2 + Math.random() * 12;
+    // Keep shards off the runway (|x| > 4.5)
+    const side = i % 2 === 0 ? 1 : -1;
+    const x = side * (5 + Math.random() * 10);
+    const y = -3 + Math.random() * 14;
     const z = cz - span + Math.random() * (span * 2);
     s.position.set(x, y, z);
     s.userData = {

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { makePathLane } from '../Path.js';
 
 // ════════════════════════════════════════════════════════════════════
 // Biome 1 — Neon Data City.
@@ -12,8 +13,13 @@ export function buildNeonCity(scene, biome) {
 
   // ── Grid floor ───────────────────────────────────────────────────
   const floor = makeGridFloor(span);
-  floor.position.set(0, -8, cz);
+  floor.position.set(0, -7, cz);
   group.add(floor);
+
+  // ── Path lane (runway) ───────────────────────────────────────────
+  const lane = makePathLane(span * 2 + 8, '#0c0830', '#22e0ff');
+  lane.position.set(0, -7, cz);
+  group.add(lane);
 
   // ── Towers in left/right lanes ───────────────────────────────────
   const towers = [];
@@ -31,7 +37,7 @@ export function buildNeonCity(scene, biome) {
     const w = 2 + Math.random() * 3;
     const col = towerColors[Math.floor(Math.random() * towerColors.length)];
     const t = makeTower(w, h, w, col);
-    t.position.set(x, -8 + h / 2, z);
+    t.position.set(x, -7 + h / 2, z);
     t.userData.pulsePhase = Math.random() * Math.PI * 2;
     t.userData.pulseAmp   = 0.5 + Math.random() * 0.5;
     group.add(t);
@@ -68,7 +74,7 @@ export function buildNeonCity(scene, biome) {
     const h = 18 + Math.random() * 28;
     const w = 1.4 + Math.random() * 2;
     const s = makeSilhouetteTower(w, h, w);
-    s.position.set(x, -8 + h / 2, z);
+    s.position.set(x, -7 + h / 2, z);
     group.add(s);
   }
 

@@ -1,19 +1,25 @@
 import * as THREE from 'three';
+import { makePathLane } from '../Path.js';
 
 // ════════════════════════════════════════════════════════════════════
 // Biome 4 — Lake Temple at twilight.
-// Stone pillars line the path beside a reflective water plane. Floating
-// golden lanterns drift overhead, tiny lotus mounds dot the water.
+// Stone pillars line a stone causeway over still water. Floating golden
+// lanterns drift to either side, tiny lotus mounds dot the water.
 // ════════════════════════════════════════════════════════════════════
 export function buildTemple(scene, biome) {
   const group = new THREE.Group();
   const cz = biome.centerZ;
   const span = biome.length;
 
-  // ── Water plane ──────────────────────────────────────────────────
+  // ── Water plane (slightly below path) ────────────────────────────
   const water = makeWater(span);
-  water.position.set(0, -7, cz);
+  water.position.set(0, -7.25, cz);
   group.add(water);
+
+  // ── Path lane (stone causeway across the water) ──────────────────
+  const lane = makePathLane(span * 2 + 8, '#3a3858', '#ffd86c');
+  lane.position.set(0, -7, cz);
+  group.add(lane);
 
   // ── Pillars on both sides ────────────────────────────────────────
   const pillars = [];
@@ -28,36 +34,40 @@ export function buildTemple(scene, biome) {
     pillars.push(p);
   }
 
-  // ── Stone path stones above water ────────────────────────────────
-  for (let i = 0; i < 14; i++) {
-    const z = cz - span + (i / 14) * (span * 2) + (Math.random() - 0.5) * 1.5;
+  // ── Floating side stones (off the path) ──────────────────────────
+  for (let i = 0; i < 18; i++) {
+    const side = i % 2 === 0 ? 1 : -1;
+    const x = side * (5 + Math.random() * 14);
+    const z = cz - span + Math.random() * (span * 2);
     const stone = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(0.8 + Math.random() * 0.3, 0),
+      new THREE.DodecahedronGeometry(0.5 + Math.random() * 0.45, 0),
       new THREE.MeshStandardMaterial({
         color: 0x6a6a78, roughness: 0.9, flatShading: true,
       }),
     );
-    stone.position.set((Math.random() - 0.5) * 1.2, -6.4, z);
+    stone.position.set(x, -7.05, z);
     stone.rotation.set(Math.random() * 0.6, Math.random() * Math.PI, Math.random() * 0.6);
     stone.scale.y = 0.4 + Math.random() * 0.2;
     group.add(stone);
   }
 
-  // ── Lotus on water ───────────────────────────────────────────────
-  for (let i = 0; i < 8; i++) {
-    const x = (Math.random() - 0.5) * 28;
+  // ── Lotus on water (off the path) ────────────────────────────────
+  for (let i = 0; i < 10; i++) {
+    const side = i % 2 === 0 ? 1 : -1;
+    const x = side * (4.5 + Math.random() * 16);
     const z = cz - span + Math.random() * (span * 2);
     const lotus = makeLotus();
-    lotus.position.set(x, -6.5, z);
+    lotus.position.set(x, -7.05, z);
     group.add(lotus);
   }
 
-  // ── Floating lanterns ────────────────────────────────────────────
+  // ── Floating lanterns (off the path, drifting above water) ───────
   const lanterns = [];
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 16; i++) {
     const l = makeLantern();
-    const x = (Math.random() - 0.5) * 22;
-    const y = 2 + Math.random() * 6;
+    const side = i % 2 === 0 ? 1 : -1;
+    const x = side * (5 + Math.random() * 12);
+    const y = -3 + Math.random() * 7;
     const z = cz - span + Math.random() * (span * 2);
     l.position.set(x, y, z);
     l.userData = {

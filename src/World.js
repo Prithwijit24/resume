@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { FOG, LIGHTING, CAMERA, SCROLL } from './world.config.js';
-import { buildSky }       from './scene/Sky.js';
-import { buildSun }       from './scene/Sun.js';
-import { buildBiomes }    from './scene/Biomes.js';
-import { buildCharacter } from './scene/Character.js';
-import { CameraTrack }    from './scene/CameraTrack.js';
+import { buildSky }                from './scene/Sky.js';
+import { buildSun }                from './scene/Sun.js';
+import { buildBiomes }             from './scene/Biomes.js';
+import { buildCharacterController } from './scene/CharacterController.js';
+import { ChaseCamera }             from './scene/ChaseCamera.js';
+import { Path }                    from './scene/Path.js';
 
 export class World {
   constructor(canvas) {
@@ -27,14 +28,14 @@ export class World {
     this.sky       = buildSky(this.scene);
     this.sun       = buildSun(this.scene);
     this.biomes    = buildBiomes(this.scene);
-    this.character = buildCharacter(this.scene);
+    this.character = buildCharacterController(this.scene);
 
-    this.cameraTrack = new CameraTrack();
+    this.path        = new Path();
+    this.chaseCamera = new ChaseCamera();
+
     this.clock = new THREE.Clock();
     this.scrollProgress = 0;
     this.smoothProgress = 0;
-    this.mouseTarget = { x: 0, y: 0 };
-    this.mouse = { x: 0, y: 0 };
 
     this._bindEvents();
     this.resize();
@@ -61,12 +62,6 @@ export class World {
 
   _bindEvents() {
     addEventListener('resize', () => this.resize());
-
-    this.canvas.addEventListener('mousemove', e => {
-      const r = this.canvas.getBoundingClientRect();
-      this.mouseTarget.x = (e.clientX - r.left) / r.width - 0.5;
-      this.mouseTarget.y = (e.clientY - r.top)  / r.height - 0.5;
-    });
   }
 
   resize() {
@@ -83,15 +78,18 @@ export class World {
   tick() {
     const time = this.clock.getElapsedTime();
 
-    // Smooth scroll progress for buttery camera motion
+    // Smooth scroll progress for buttery motion through the corridor
     this.smoothProgress += (this.scrollProgress - this.smoothProgress) * SCROLL.cameraSmoothing;
-    this.cameraTrack.apply(this.camera, this.smoothProgress);
 
-    // Mouse parallax — offset camera after track placement
-    this.mouse.x += (this.mouseTarget.x - this.mouse.x) * CAMERA.parallaxSmoothing;
-    this.mouse.y += (this.mouseTarget.y - this.mouse.y) * CAMERA.parallaxSmoothing;
-    this.camera.position.x += this.mouse.x * CAMERA.parallaxXY[0];
-    this.camera.position.y += this.mouse.y * CAMERA.parallaxXY[1];
+    // Drive the runner — animation by time, position by progress
+    const runnerInfo = this.character.update(time, this.smoothProgress, this.path);
+
+    // Chase camera follows the runner with smooth lag + footstep shake
+    this.chaseCamera.apply(this.camera, runnerInfo.position, runnerInfo.footstepIntensity);
+
+    // Keep the sky dome wrapped around the camera as the corridor extends
+    // far past its sphere radius.
+    this.sky.mesh.position.copy(this.camera.position);
 
     // Update biomes + receive blended palette for current scroll
     const palette = this.biomes.update(time, this.smoothProgress);
@@ -110,9 +108,6 @@ export class World {
     });
     this.scene.fog.color.copy(palette.fog);
     this.character.setAuraColor(palette.aura);
-
-    // Update character (uses the post-parallax camera position)
-    this.character.update(time, this.camera, this.smoothProgress);
 
     this.renderer.render(this.scene, this.camera);
   }

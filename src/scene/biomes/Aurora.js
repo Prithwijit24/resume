@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { makePathLane } from '../Path.js';
 
 // ════════════════════════════════════════════════════════════════════
 // Biome 5 — Aurora over snow plain.
@@ -16,6 +17,11 @@ export function buildAurora(scene, biome) {
   snow.position.set(0, -7, cz);
   group.add(snow);
 
+  // ── Path lane (packed snow with teal glow) ───────────────────────
+  const lane = makePathLane(span * 2 + 8, '#0d1830', '#6effc0');
+  lane.position.set(0, -7, cz);
+  group.add(lane);
+
   // ── Ice spires on both sides ─────────────────────────────────────
   for (let i = 0; i < 16; i++) {
     const side = i % 2 === 0 ? 1 : -1;
@@ -29,9 +35,10 @@ export function buildAurora(scene, biome) {
     group.add(spire);
   }
 
-  // ── Small ice chunks scattered ───────────────────────────────────
+  // ── Small ice chunks scattered (off the path) ───────────────────
   for (let i = 0; i < 30; i++) {
-    const x = (Math.random() - 0.5) * 40;
+    const side = i % 2 === 0 ? 1 : -1;
+    const x = side * (4 + Math.random() * 16);
     const z = cz - span + Math.random() * (span * 2);
     const r = 0.3 + Math.random() * 0.55;
     const chunk = new THREE.Mesh(
