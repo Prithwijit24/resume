@@ -160,35 +160,59 @@ function makeIsland(spec) {
     group.add(m);
   }
 
-  // Trees
-  for (let i = 0; i < trees; i++) {
-    const a = (i / trees) * Math.PI * 2 + Math.random() * 0.8;
-    const rr = r * (0.25 + Math.random() * 0.55);
-    const tree = makeTree(0.3 + Math.random() * 0.35, 1.5 + Math.random() * 1.6);
-    tree.position.set(rr * Math.cos(a), r * 0.45, rr * Math.sin(a));
-    tree.rotation.y = Math.random() * Math.PI * 2;
-    group.add(tree);
-  }
-
-  // Crystals
-  const crystals = new THREE.Group();
-  for (let i = 0; i < 3; i++) {
-    const c = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.2 + Math.random() * 0.12, 0),
+  // Rounded foliage mounds — soft icosahedron bumps on the grass cap.
+  // Replaces the old stacked-cone trees with a cleaner, garden-like silhouette.
+  const moundCount = Math.max(2, trees);
+  for (let i = 0; i < moundCount; i++) {
+    const moundColor = new THREE.Color(grass).offsetHSL(
+      (Math.random() - 0.5) * 0.04,
+      0,
+      (Math.random() - 0.5) * 0.06,
+    );
+    const mr = 0.45 + Math.random() * 0.55;
+    const mound = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(mr, 1),
       new THREE.MeshStandardMaterial({
-        color: 0xffe8b0, emissive: 0xffaa66, emissiveIntensity: 0.9,
-        roughness: 0.25, flatShading: true,
+        color: moundColor, roughness: 0.85, flatShading: true,
+        emissive: moundColor.clone().multiplyScalar(0.08),
       }),
     );
-    const a = (i / 3) * Math.PI * 2 + Math.random() * 0.4;
-    const rr = r * (1.15 + Math.random() * 0.4);
-    const h = r * (0.25 + Math.random() * 0.6);
+    const a = (i / moundCount) * Math.PI * 2 + Math.random() * 0.6;
+    const rr = r * (0.2 + Math.random() * 0.55);
+    mound.position.set(rr * Math.cos(a), r * 0.46 + mr * 0.55, rr * Math.sin(a));
+    mound.scale.y = 0.7 + Math.random() * 0.25;
+    mound.rotation.y = Math.random() * Math.PI * 2;
+    group.add(mound);
+  }
+
+  // Larger glowing crystals — bumped count and varied colors for visual interest.
+  const crystals = new THREE.Group();
+  const crystalPalette = [
+    { color: 0xfff0c0, emissive: 0xffaa66 },
+    { color: 0xc8e8ff, emissive: 0x6c9cff },
+    { color: 0xffd0e8, emissive: 0xff80b0 },
+    { color: 0xd8ffd0, emissive: 0x8cffa0 },
+  ];
+  const crystalCount = 4;
+  for (let i = 0; i < crystalCount; i++) {
+    const cp = crystalPalette[(i + Math.floor(hue * 4)) % crystalPalette.length];
+    const c = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.24 + Math.random() * 0.16, 0),
+      new THREE.MeshStandardMaterial({
+        color: cp.color, emissive: cp.emissive, emissiveIntensity: 0.9,
+        roughness: 0.22, metalness: 0.15, flatShading: true,
+      }),
+    );
+    const a = (i / crystalCount) * Math.PI * 2 + Math.random() * 0.3;
+    const rr = r * (1.1 + Math.random() * 0.45);
+    const h = r * (0.3 + Math.random() * 0.65);
     c.userData = {
       base: new THREE.Vector3(rr * Math.cos(a), h, rr * Math.sin(a)),
       phase: Math.random() * Math.PI * 2,
       spin:  0.6 + Math.random() * 0.6,
     };
     c.position.copy(c.userData.base);
+    c.scale.y = 1.4 + Math.random() * 0.4;
     crystals.add(c);
   }
   group.add(crystals);
@@ -198,43 +222,6 @@ function makeIsland(spec) {
   group.userData.bobPhase = Math.random() * Math.PI * 2;
   group.userData.crystals = crystals;
   return group;
-}
-
-function makeTree(radius, height) {
-  const g = new THREE.Group();
-  const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.05, 0.1, height * 0.34, 7),
-    new THREE.MeshStandardMaterial({ color: 0x5a3a1f, roughness: 1, flatShading: true })
-  );
-  trunk.position.y = height * 0.17;
-  g.add(trunk);
-
-  const hues = [0x6ec040, 0x88d258, 0x5ab230, 0xa4d96a];
-  const foliage = hues[Math.floor(Math.random() * hues.length)];
-
-  const f1 = new THREE.Mesh(
-    new THREE.ConeGeometry(radius, height * 0.75, 8),
-    new THREE.MeshStandardMaterial({ color: foliage, roughness: 0.85, flatShading: true })
-  );
-  f1.position.y = height * 0.62;
-  g.add(f1);
-
-  const f2 = new THREE.Mesh(
-    new THREE.ConeGeometry(radius * 0.74, height * 0.46, 8),
-    new THREE.MeshStandardMaterial({ color: foliage, roughness: 0.85, flatShading: true })
-  );
-  f2.position.y = height * 0.96;
-  g.add(f2);
-
-  if (Math.random() < 0.3) {
-    const f3 = new THREE.Mesh(
-      new THREE.ConeGeometry(radius * 0.5, height * 0.32, 8),
-      new THREE.MeshStandardMaterial({ color: foliage, roughness: 0.85, flatShading: true })
-    );
-    f3.position.y = height * 1.22;
-    g.add(f3);
-  }
-  return g;
 }
 
 function makeCloudSea(span) {
