@@ -1,21 +1,16 @@
 import * as THREE from 'three';
-import { SKY, FOG, LIGHTING, ISLANDS, CAMERA, SCROLL } from './world.config.js';
+import { FOG, LIGHTING, CAMERA, SCROLL } from './world.config.js';
 import { buildSky }       from './scene/Sky.js';
 import { buildSun }       from './scene/Sun.js';
-import { buildCloudSea }  from './scene/CloudSea.js';
-import { buildIslands }   from './scene/Island.js';
-import { buildClouds }    from './scene/Clouds.js';
-import { buildMotes }     from './scene/Motes.js';
-import { buildPetals }    from './scene/Petals.js';
-import { buildBirds }     from './scene/Birds.js';
+import { buildBiomes }    from './scene/Biomes.js';
 import { buildCharacter } from './scene/Character.js';
-import { CameraPath }     from './scene/CameraPath.js';
+import { CameraTrack }    from './scene/CameraTrack.js';
 
 export class World {
   constructor(canvas) {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.Fog(new THREE.Color(FOG.color), FOG.near, FOG.far);
+    this.scene.fog = new THREE.Fog(new THREE.Color('#f0dcbc'), FOG.near, FOG.far);
 
     this.camera = new THREE.PerspectiveCamera(CAMERA.fov, 1, CAMERA.near, CAMERA.far);
     this.renderer = new THREE.WebGLRenderer({
@@ -26,20 +21,15 @@ export class World {
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMappingExposure = 1.0;
 
     this._buildLighting();
-    buildSky(this.scene);
-    buildSun(this.scene);
-    this.cloudSea = buildCloudSea(this.scene);
-    this.islands  = buildIslands(this.scene, ISLANDS);
-    buildClouds(this.scene);
-    this.motes    = buildMotes(this.scene);
-    this.petals   = buildPetals(this.scene);
-    this.birds    = buildBirds(this.scene);
+    this.sky       = buildSky(this.scene);
+    this.sun       = buildSun(this.scene);
+    this.biomes    = buildBiomes(this.scene);
     this.character = buildCharacter(this.scene);
 
-    this.cameraPath = new CameraPath();
+    this.cameraTrack = new CameraTrack();
     this.clock = new THREE.Clock();
     this.scrollProgress = 0;
     this.smoothProgress = 0;
@@ -95,34 +85,33 @@ export class World {
 
     // Smooth scroll progress for buttery camera motion
     this.smoothProgress += (this.scrollProgress - this.smoothProgress) * SCROLL.cameraSmoothing;
-    this.cameraPath.apply(this.camera, this.smoothProgress);
+    this.cameraTrack.apply(this.camera, this.smoothProgress);
 
-    // Mouse parallax — offset camera *after* path placement
+    // Mouse parallax — offset camera after track placement
     this.mouse.x += (this.mouseTarget.x - this.mouse.x) * CAMERA.parallaxSmoothing;
     this.mouse.y += (this.mouseTarget.y - this.mouse.y) * CAMERA.parallaxSmoothing;
     this.camera.position.x += this.mouse.x * CAMERA.parallaxXY[0];
     this.camera.position.y += this.mouse.y * CAMERA.parallaxXY[1];
 
-    // Gentle island bob + spinning crystals around each island
-    this.islands.forEach((isl, i) => {
-      isl.position.y = isl.userData.baseY + Math.sin(time * 0.4 + isl.userData.bobPhase) * 0.14;
-      isl.rotation.y += 0.0008 + i * 0.00003;
+    // Update biomes + receive blended palette for current scroll
+    const palette = this.biomes.update(time, this.smoothProgress);
 
-      const cg = isl.userData.crystals;
-      if (cg) {
-        cg.children.forEach(c => {
-          const base = c.userData.base;
-          c.position.y = base.y + Math.sin(time * 1.2 + c.userData.phase) * 0.35;
-          c.rotation.y += 0.015 * c.userData.spin;
-          c.rotation.x += 0.008 * c.userData.spin;
-        });
-      }
+    // Apply blended palette to sky, sun, fog, character aura
+    this.sky.setPalette({
+      top:    palette.skyTop,
+      mid:    palette.skyMid,
+      bottom: palette.skyBot,
     });
+    this.sun.update({
+      sunColor:   palette.sun,
+      sunHalo:    palette.halo,
+      sunOpacity: palette.sunOpacity,
+      sunPos:     palette.sunPos,
+    });
+    this.scene.fog.color.copy(palette.fog);
+    this.character.setAuraColor(palette.aura);
 
-    this.cloudSea.update(time);
-    this.motes.update();
-    this.petals.update(time);
-    this.birds.update(time);
+    // Update character (uses the post-parallax camera position)
     this.character.update(time, this.camera, this.smoothProgress);
 
     this.renderer.render(this.scene, this.camera);

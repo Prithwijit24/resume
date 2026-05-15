@@ -84,7 +84,7 @@ export function renderEditorial() {
     </a>`;
 
   document.getElementById('main').innerHTML = `
-    <section id="sec-hero">
+    <section id="sec-hero" data-biome="hero">
       <div class="eyebrow"><span class="dot"></span>${esc(hero.eyebrow)}</div>
       <h1 class="display h-hero">${headline(hero.title)}</h1>
       <p class="lede">${esc(hero.lede)}</p>
@@ -92,41 +92,41 @@ export function renderEditorial() {
       <div class="hero-stats">${stats}</div>
     </section>
 
-    <section id="sec-exp">
+    <section id="sec-exp" data-biome="exp">
       <div class="eyebrow">${esc(SECTIONS.exp.num)} · ${esc(SECTIONS.exp.eyebrow)}</div>
       <h2 class="display h-section">${headline(SECTIONS.exp.title)}</h2>
       <p class="lede">${esc(SECTIONS.exp.lede)}</p>
       <div class="grid-2">${expCards}</div>
     </section>
 
-    <section id="sec-proj">
+    <section id="sec-proj" data-biome="proj">
       <div class="eyebrow">${esc(SECTIONS.proj.num)} · ${esc(SECTIONS.proj.eyebrow)}</div>
       <h2 class="display h-section">${headline(SECTIONS.proj.title)}</h2>
       <p class="lede">${esc(SECTIONS.proj.lede)}</p>
       <div class="grid-2">${projCards}</div>
     </section>
 
-    <section id="sec-skill">
+    <section id="sec-skill" data-biome="skill">
       <div class="eyebrow">${esc(SECTIONS.skill.num)} · ${esc(SECTIONS.skill.eyebrow)}</div>
       <h2 class="display h-section">${headline(SECTIONS.skill.title)}</h2>
       <p class="lede">${esc(SECTIONS.skill.lede)}</p>
       <div class="glass" style="margin-top:48px;"><div class="skills">${skillRows}</div></div>
     </section>
 
-    <section id="sec-edu">
+    <section id="sec-edu" data-biome="edu">
       <div class="eyebrow">${esc(SECTIONS.edu.num)} · ${esc(SECTIONS.edu.eyebrow)}</div>
       <h2 class="display h-section">${headline(SECTIONS.edu.title)}</h2>
       ${SECTIONS.edu.lede ? `<p class="lede">${esc(SECTIONS.edu.lede)}</p>` : ''}
       <div class="grid-2">${eduCards}</div>
     </section>
 
-    <section id="sec-contact">
+    <section id="sec-contact" data-biome="contact">
       <div class="eyebrow">${esc(c.num)} · ${esc(c.eyebrow)}</div>
       <h2 class="display h-section" style="font-size:60px;">${headline(c.title)}</h2>
       <p class="lede">${esc(c.lede)}</p>
       <div class="channels">${channels}</div>
     </section>
 
-    <footer>BUILT WITH THREE.JS · A WORLD YOU SCROLL THROUGH</footer>
+    <footer>BUILT WITH THREE.JS · SIX WORLDS YOU FLY THROUGH</footer>
   `;
 }

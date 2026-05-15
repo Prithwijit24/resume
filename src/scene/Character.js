@@ -95,13 +95,11 @@ export function buildCharacter(scene) {
   shoeR.position.set(0, -0.62, 0.05); legR.add(shoeR);
 
   // ─── Aura ───────────────────────────────────────────────────────
-  const aura = new THREE.Mesh(
-    new THREE.SphereGeometry(1.9, 18, 14),
-    new THREE.MeshBasicMaterial({
-      color: 0xffe9b0, transparent: true, opacity: 0.13,
-      depthWrite: false, side: THREE.BackSide,
-    }),
-  );
+  const auraMat = new THREE.MeshBasicMaterial({
+    color: 0xffe9b0, transparent: true, opacity: 0.16,
+    depthWrite: false, side: THREE.BackSide,
+  });
+  const aura = new THREE.Mesh(new THREE.SphereGeometry(1.9, 18, 14), auraMat);
   aura.position.y = 1.1;
   root.add(aura);
 
@@ -245,5 +243,9 @@ export function buildCharacter(scene) {
     trail.geometry.attributes.position.needsUpdate = true;
   }
 
-  return { root, update };
+  function setAuraColor(color) {
+    if (color) auraMat.color.copy(color);
+  }
+
+  return { root, update, setAuraColor };
 }

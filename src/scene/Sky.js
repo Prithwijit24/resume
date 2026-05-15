@@ -1,36 +1,22 @@
 import * as THREE from 'three';
 import { SKY } from '../world.config.js';
 
-// Build the sky. Returns the mesh — caller adds it to the scene.
-//
-// ASSET SLOT: To use a real HDRI, set SKY.hdr to a path under /public.
-// The RGBELoader path below uses the HDRI as a scene environment + background.
+// Build the sky. Returns { mesh, setPalette({top, mid, bottom}) }.
+// World.js calls setPalette every frame with the blended biome colors
+// so the dome smoothly tints between worlds.
 export function buildSky(scene) {
-  if (SKY.hdr) {
-    // To enable HDRI loading, uncomment this block (and install nothing extra —
-    // RGBELoader is bundled with three.js examples). Keep SKY.hdr = null to use
-    // the gradient shader instead.
-    //
-    // import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
-    // new RGBELoader().load(SKY.hdr, tex => {
-    //   tex.mapping = THREE.EquirectangularReflectionMapping;
-    //   scene.background = tex;
-    //   scene.environment = tex;
-    // });
-    console.warn('[Sky] SKY.hdr is set, but HDRI loading is opt-in. See Sky.js comments.');
-  }
-
-  const geo = new THREE.SphereGeometry(300, 32, 24);
+  const geo = new THREE.SphereGeometry(320, 32, 24);
+  const uniforms = {
+    topColor:    { value: new THREE.Color(SKY.topColor) },
+    midColor:    { value: new THREE.Color(SKY.midColor) },
+    bottomColor: { value: new THREE.Color(SKY.bottomColor) },
+    offset:      { value: SKY.offset },
+    exponent:    { value: SKY.exponent },
+  };
   const mat = new THREE.ShaderMaterial({
     side: THREE.BackSide,
     depthWrite: false,
-    uniforms: {
-      topColor:    { value: new THREE.Color(SKY.topColor) },
-      midColor:    { value: new THREE.Color(SKY.midColor) },
-      bottomColor: { value: new THREE.Color(SKY.bottomColor) },
-      offset:      { value: SKY.offset },
-      exponent:    { value: SKY.exponent },
-    },
+    uniforms,
     vertexShader: /* glsl */ `
       varying vec3 vWorldPosition;
       void main() {
@@ -63,5 +49,12 @@ export function buildSky(scene) {
 
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);
-  return mesh;
+
+  function setPalette({ top, mid, bottom }) {
+    if (top)    uniforms.topColor.value.copy(top);
+    if (mid)    uniforms.midColor.value.copy(mid);
+    if (bottom) uniforms.bottomColor.value.copy(bottom);
+  }
+
+  return { mesh, setPalette };
 }
